@@ -3,8 +3,17 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
-import { CustomAlert } from './components';
-import { HomeScreen, LoginScreen, RegisterScreen, SplashScreen, UsersScreen } from './screens';
+import { CustomAlert, CustomLoadingIndicator } from './components';
+import {
+  HomeScreen,
+  LoginScreen,
+  RegisterScreen,
+  LoginFaceScreen,
+  FrontCameraScreen,
+  SplashScreen,
+  UsersScreen,
+  EditUserScreen,
+} from './screens';
 
 const Stack = createNativeStackNavigator();
 
@@ -48,10 +57,18 @@ const AppNavigator = () => {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="LoginFace" component={LoginFaceScreen} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Users" component={UsersScreen} />
+          <Stack.Screen name="EditUser" component={EditUserScreen} />
+          <Stack.Screen 
+            name="FrontCamera" 
+            component={FrontCameraScreen}
+            options={{ presentation: 'fullScreenModal' }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
+      <CustomLoadingIndicator />
       <CustomAlert />
     </>
   );

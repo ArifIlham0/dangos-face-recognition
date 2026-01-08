@@ -4,7 +4,10 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { translations } from '../languages/language';
 
 type GlobalState = {
+    isLoading: boolean;
     currentLang: string;
+    showLoading: () => void;
+    hideLoading: () => void;
     changeLang: (langCode: string) => void;
     translate: (key: string, params?: { [key: string]: string }) => string;
 };
@@ -12,6 +15,7 @@ type GlobalState = {
 const useGlobalStore = create<GlobalState>()(
     persist(
         (set, get) => ({
+            isLoading: false,
             currentLang: 'id',
             changeLang: langCode => {
                 set({ currentLang: langCode });
@@ -29,6 +33,10 @@ const useGlobalStore = create<GlobalState>()(
                 
                 return text;
             },
+
+            showLoading: () => set({ isLoading: true }),
+            
+            hideLoading: () => set({ isLoading: false }),
         }),
         {
             name: 'language',

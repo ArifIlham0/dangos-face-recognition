@@ -14,7 +14,7 @@ type Props = {
 const SplashScreen = (props: Props) => {
     useEffect(() => {
         const timeout = setTimeout(() => {
-            props.navigation.replace('Login')
+            props.navigation.replace('Home')
         }, 1000)
         return () => clearTimeout(timeout)
     })

@@ -5,9 +5,9 @@ const Dimension = {
     statusBarHeight: Platform.OS === 'android' ? StatusBar.currentHeight : 55,
 }
 
-const DimensionInsets = () => {
+const useDimensionInsets = () => {
     const insets = useSafeAreaInsets();
-    return { ...Dimension, insets };
-}
+    return { insets };
+};
 
-export { Dimension, DimensionInsets };
+export { Dimension, useDimensionInsets };

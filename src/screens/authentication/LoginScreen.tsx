@@ -6,8 +6,10 @@ import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
+import { useAlertStore } from '../../stores/alertStore'
 import { KeyIcon, PersonIcon } from '../../../assets/icons'
 import { CustomButton, CustomTextInput } from '../../components'
+import useAuthenticationStore from '../../stores/authenticationStore'
 import AuthenticationBackground from '../../components/authentication/AuthenticationBackground'
 
 type Props = {
@@ -17,16 +19,40 @@ type Props = {
 
 const LoginScreen = (props: Props) => {
     const { translate, showLoading, hideLoading } = useGlobalStore();
+    const { showAlert } = useAlertStore();
+    const { login } = useAuthenticationStore();
 
-    const [usernameOrEmail, setUsernameOrEmail] = useState('')
+    const [emailOrUsername, setEmailOrUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [emailOrUsernameTouched, setEmailOrUsernameTouched] = useState(false);
+    const [passwordTouched, setPasswordTouched] = useState(false);
 
-    const handleLogin = () => {
-        showLoading()
-        setTimeout(() => {
+    let emailOrUsernameErrorText = '';
+    let passwordErrorText = '';
+
+    if (emailOrUsernameTouched && emailOrUsername.length === 0) {
+        emailOrUsernameErrorText = translate("requiredField");
+    }
+    if (passwordTouched && password.length === 0) {
+        passwordErrorText = translate("requiredField");
+    }
+
+    const handleLogin = async () => {
+        try {
+            showLoading()
+            const response = await login({
+                email_or_username: emailOrUsername,
+                password: password,
+            })
+
+            if (response.status === 200) {
+                props.navigation.replace('Home')
+            } else {
+                showAlert(response.message ?? translate('anErrorOccurred'))
+            }
+        } finally {
             hideLoading()
-            props.navigation.replace('Home')
-        }, 1500)
+        }
     }
 
     return (
@@ -45,13 +71,19 @@ const LoginScreen = (props: Props) => {
                         </Text>
                         <View style={tw`h-10`} />
                         <CustomTextInput
-                            value={usernameOrEmail}
+                            value={emailOrUsername}
                             autoCapitalize="none"
                             preffix={<PersonIcon />}
-                            onChangeText={setUsernameOrEmail}
                             keyboardType="email-address"
                             label={translate('usernameOrEmail')}
+                            errorMessage={emailOrUsernameErrorText}
                             placeholder={translate('enterUsernameEmail')}
+                            onChangeText={value => {
+                                setEmailOrUsername(value);
+                                if (!emailOrUsernameTouched) {
+                                    setEmailOrUsernameTouched(true);
+                                }
+                            }}
                         />
                         <View style={tw`h-6`} />
                         <CustomTextInput
@@ -59,8 +91,14 @@ const LoginScreen = (props: Props) => {
                             label="Password"
                             isPassword={true}
                             preffix={<KeyIcon />}
-                            onChangeText={setPassword}
+                            errorMessage={passwordErrorText}
                             placeholder={translate('enterYourPassword')}
+                            onChangeText={value => {
+                                setPassword(value);
+                                if (!passwordTouched) {
+                                    setPasswordTouched(true);
+                                }
+                            }}
                         />
                         <View style={tw`h-4`} />
                         <TouchableOpacity style={tw`self-end`}>
@@ -71,8 +109,9 @@ const LoginScreen = (props: Props) => {
 
                         <View style={tw`h-6`} />
                         <CustomButton
-                            title={translate('login')}
                             onPress={handleLogin}
+                            title={translate('login')}
+                            disabled={emailOrUsername.length === 0 || password.length === 0}
                         />
                         <View style={tw`h-5`} />
                     </View>

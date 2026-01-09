@@ -1,7 +1,7 @@
 type Theme = {
   isDarkMode: boolean;
   toggleTheme: () => void;
-};
+}
 
 type Translations = {
   [key: string]: {
@@ -15,9 +15,15 @@ type Locale = {
   icon: React.ComponentType<any>
 }
 
+type GlobalResponse<T> = {
+  status?: number;
+  message?: string;
+  data?: T;
+}
+
 type GlobalQueryParams = {
   page?: number;
   page_size?: number;
 }
 
-export type { Theme, Translations, Locale, GlobalQueryParams };
+export type { Theme, Translations, Locale, GlobalResponse, GlobalQueryParams };

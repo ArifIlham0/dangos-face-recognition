@@ -2,18 +2,18 @@ import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native'
 import React from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
 import LinearGradient from 'react-native-linear-gradient'
 import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
+import { useFormatDate } from '../../utils/date'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
 import { activeHistories } from '../../constants/data'
-import { Dimension, useDimensionInsets } from '../../utils/dimension'
-import { CameraIcon, ClockIcon } from '../../../assets/icons'
-import { useFormatDate } from '../../utils/date'
-import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
 import { useAlertStore } from '../../stores/alertStore'
+import { CameraIcon, ClockIcon } from '../../../assets/icons'
+import { Dimension, useDimensionInsets } from '../../utils/dimension'
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -33,7 +33,7 @@ const HomeScreen = (props: Props) => {
       translate('youSureLogout'),
       async () => {
         await AsyncStorage.removeItem('user')
-        props.navigation.replace('Login')
+        props.navigation.replace('LoginFace')
         hideAlert()
       },
       true

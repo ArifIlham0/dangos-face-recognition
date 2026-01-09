@@ -14,7 +14,7 @@ const CustomLoadingIndicator = () => {
     return (
         <View style={[tw`absolute top-0 left-0 right-0 bottom-0 justify-center items-center z-2`, {backgroundColor: COLORS.overlay}]}>
             <View style={tw`bg-white items-center justify-center w-100px h-80px rounded-10px`}>
-                <ActivityIndicator size={40} />
+                <ActivityIndicator size={40} color={COLORS.primary}/>
             </View>
         </View>
     )

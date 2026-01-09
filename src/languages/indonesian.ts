@@ -39,6 +39,7 @@ const id: Translations['id'] = {
   somethingWentWrong: 'Terjadi kesalahan. Coba lagi.',
   profile: 'Profil',
   youSureLogout: 'Apakah Anda yakin ingin keluar?',
+  anErrorOccurred: 'Terjadi kesalahan, silakan coba lagi.',
 };
 
 export default id;

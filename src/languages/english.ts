@@ -39,6 +39,7 @@ const en: Translations['en'] = {
   somethingWentWrong: 'Something went wrong. Please try again.',
   profile: 'Profile',
   youSureLogout: 'Are you sure you want to logout?',
+  anErrorOccurred: 'An error occurred, please try again.',
 };
 
 export default en;

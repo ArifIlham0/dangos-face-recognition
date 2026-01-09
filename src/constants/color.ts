@@ -10,7 +10,7 @@ const COLORS = {
   lightBlue: '#4B71A9',
   cream: '#F7F4EE',
   border: '#EDF1F3',
-  error: '#FA9D9D',
+  error: '#FF5555',
   success: '#97F7DF',
   overlay: 'rgba(0, 0, 0, 0.5)',
 };

@@ -9,9 +9,11 @@ import { Fonts } from '../../constants/font'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
 import { activeHistories } from '../../constants/data'
-import { useDimensionInsets } from '../../utils/dimension'
+import { Dimension, useDimensionInsets } from '../../utils/dimension'
 import { CameraIcon, ClockIcon } from '../../../assets/icons'
 import { useFormatDate } from '../../utils/date'
+import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
+import { useAlertStore } from '../../stores/alertStore'
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -22,12 +24,20 @@ const HomeScreen = (props: Props) => {
   const { borderWidth = 6 } = props
 
   const { translate } = useGlobalStore();
+  const { showAlert, hideAlert } = useAlertStore();
   const { insets } = useDimensionInsets();
   const formatDate = useFormatDate();
 
   const handleLogout = async () => {
-    await AsyncStorage.removeItem('user')
-    props.navigation.replace('Login')
+    showAlert(
+      translate('youSureLogout'),
+      async () => {
+        await AsyncStorage.removeItem('user')
+        props.navigation.replace('Login')
+        hideAlert()
+      },
+      true
+    )
   }
 
   return (
@@ -104,7 +114,7 @@ const HomeScreen = (props: Props) => {
           <View style={tw`h-2`} />
           <TouchableOpacity
             activeOpacity={0.6}
-            onPress={() => {}}
+            onPress={() => props.navigation.navigate("FrontCamera")}
             style={[tw`border p-1 rounded-md border-2`, { borderColor: COLORS.secondary }]}
           >
             <View style={[
@@ -163,6 +173,21 @@ const HomeScreen = (props: Props) => {
           </TouchableOpacity>
         </View>
       </View>
+      <TouchableOpacity
+        activeOpacity={0.6}
+        onPress={handleLogout}
+        style={[
+          tw`absolute justify-start right-5`,
+          { paddingTop: Dimension.statusBarHeight },
+        ]}
+      >
+        <FontAwesome6
+          size={18}
+          iconStyle='solid'
+          color={COLORS.white}
+          name="arrow-right-from-bracket"
+        />
+      </TouchableOpacity>
     </ScrollView>
   )
 }

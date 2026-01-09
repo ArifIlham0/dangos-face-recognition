@@ -6,18 +6,26 @@ import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
 import { RootStackParamList } from '../../types/route'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, "Splash">;
 }
 
 const SplashScreen = (props: Props) => {
+
     useEffect(() => {
-        const timeout = setTimeout(() => {
-            props.navigation.replace('Home')
-        }, 1000)
+        const checkUser = async () => {
+            const user = await AsyncStorage.getItem('user')
+            if (user) {
+                props.navigation.replace('Home')
+            } else {
+                props.navigation.replace('Login')
+            }
+        }
+        const timeout = setTimeout(checkUser, 1000)
         return () => clearTimeout(timeout)
-    })
+    }, [props.navigation])
 
     return (
         <LinearGradient

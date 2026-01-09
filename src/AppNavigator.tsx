@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { CustomAlert, CustomLoadingIndicator } from './components';
 import {
@@ -18,36 +17,11 @@ import {
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const [initialRoute, setInitialRoute] = useState('Splash');
-  const [isReady, setIsReady] = useState(false);
-
-  const checkUserSession = useCallback(async () => {
-    try {
-      const user = await AsyncStorage.getItem('user');
-      
-      if (user) {
-        setInitialRoute('Home');
-      }
-    } catch (error) {
-      if (__DEV__) console.log('Error checking user session:', error);
-    } finally {
-      setIsReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkUserSession();
-  }, [checkUserSession]);
-
-  if (!isReady) {
-    return null;
-  }
-
   return (
     <>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName={initialRoute}
+          initialRouteName="Splash"
           screenOptions={{
             headerShown: false,
             animation: Platform.OS === 'ios' ? 'default' : 'slide_from_right', 

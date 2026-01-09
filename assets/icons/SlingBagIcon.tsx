@@ -1,10 +1,10 @@
 import * as React from "react";
 import Svg, { SvgProps, Path } from "react-native-svg";
 
-const SlingBagIcon = (props: SvgProps) => (
+const SlingBagIcon = ({width = 13, height = 13, ...props}: SvgProps) => (
     <Svg
-        width={13}
-        height={13}
+        width={width}
+        height={height}
         viewBox="0 0 13 13"
         fill="none"
         {...props}

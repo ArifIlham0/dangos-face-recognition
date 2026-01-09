@@ -129,7 +129,7 @@ const EditUserScreen = (props: Props) => {
                         <CustomTextInput
                             value={job}
                             label={translate('job')}
-                            preffix={<SlingBagIcon />}
+                            preffix={<SlingBagIcon width={17} height={17} />}
                             placeholder={translate('jobPlaceholder')}
                             onChangeText={text => {
                                 setJob(text)

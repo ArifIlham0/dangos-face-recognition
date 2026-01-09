@@ -38,6 +38,7 @@ const id: Translations['id'] = {
   profileUpdated: 'Profil berhasil diperbarui',
   somethingWentWrong: 'Terjadi kesalahan. Coba lagi.',
   profile: 'Profil',
+  youSureLogout: 'Apakah Anda yakin ingin keluar?',
 };
 
 export default id;

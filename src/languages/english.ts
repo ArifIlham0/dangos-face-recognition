@@ -38,6 +38,7 @@ const en: Translations['en'] = {
   profileUpdated: 'Profile updated successfully',
   somethingWentWrong: 'Something went wrong. Please try again.',
   profile: 'Profile',
+  youSureLogout: 'Are you sure you want to logout?',
 };
 
 export default en;

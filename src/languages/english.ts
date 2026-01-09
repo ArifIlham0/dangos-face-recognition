@@ -40,6 +40,10 @@ const en: Translations['en'] = {
   profile: 'Profile',
   youSureLogout: 'Are you sure you want to logout?',
   anErrorOccurred: 'An error occurred, please try again.',
+  faceNotRecognized: 'Your face or account is not registered, register an account?',
+  usernameAtLeast6: 'Username at least 6 characters',
+  usernameShouldNotContainSpaces: 'Username should not contain spaces',
+  passwordAtLeast6: 'Password at least 6 characters',
 };
 
 export default en;

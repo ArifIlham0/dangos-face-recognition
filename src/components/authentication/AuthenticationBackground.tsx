@@ -50,7 +50,7 @@ const AuthenticationBackground = (props: Props) => {
                     <View style={tw`flex-row items-center justify-center`}>
                         <Image
                             source={require('../../../assets/images/dangos_white.png')}
-                            style={tw`w-15 h-15`}
+                            style={tw`w-15 h-15 rounded`}
                         />
                         <View style={tw`w-7`} />
                         <View style={tw`items-center`}>

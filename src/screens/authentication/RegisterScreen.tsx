@@ -1,4 +1,4 @@
-import { View, Text } from 'react-native'
+import { View, Text, Keyboard } from 'react-native'
 import React, { useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import tw from 'twrnc'
@@ -9,17 +9,69 @@ import { RootStackParamList } from '../../types/route'
 import { CustomButton, CustomTextInput } from '../../components'
 import { EmailIcon, KeyIcon, PersonIcon } from '../../../assets/icons'
 import AuthenticationBackground from '../../components/authentication/AuthenticationBackground'
+import { useAlertStore } from '../../stores/alertStore'
+import useAuthenticationStore from '../../stores/authenticationStore'
+import { Validation } from '../../utils/validate'
 
 type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Register'>;
 }
 
 const RegisterScreen = (props: Props) => {
-    const { translate } = useGlobalStore();
+    const { translate, showLoading, hideLoading } = useGlobalStore();
+    const { showAlert } = useAlertStore();
+    const { createUser } = useAuthenticationStore();
 
     const [username, setUsername] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [usernameTouched, setUsernameTouched] = useState(false);
+    const [emailTouched, setEmailTouched] = useState(false);
+    const [passwordTouched, setPasswordTouched] = useState(false);
+
+    let usernameErrorText = '';
+    let emailErrorText = '';
+    let passwordErrorText = '';
+
+    if (usernameTouched && username.length === 0) {
+        usernameErrorText = translate('requiredField');
+    } else if (usernameTouched && username.length < 6) {
+        usernameErrorText = translate('usernameAtLeast6');
+    } else if (usernameTouched && /\s/.test(username)) {
+        usernameErrorText = translate('usernameShouldNotContainSpaces');
+    }
+
+    if (emailTouched && email.length === 0) {
+        emailErrorText = translate('requiredField');
+    } else if (emailTouched && !Validation.isEmail(email)) {
+        emailErrorText = translate('invalidEmail');
+    }
+
+    if (passwordTouched && password.length === 0) {
+        passwordErrorText = translate('requiredField');
+    } else if (passwordTouched && password.length < 6) {
+        passwordErrorText = translate('passwordAtLeast6');
+    }
+
+    const handleRegister = async () => {
+        try {
+            showLoading();
+            const response = await createUser({
+                username: username,
+                email: email,
+                password: password,
+            });
+
+            if (response.status === 201) {
+                Keyboard.dismiss();
+                props.navigation.replace('FrontCamera', { flow: 'register' });
+            } else {
+                showAlert(response.message ?? translate('anErrorOccurred'));
+            }
+        } finally {
+            hideLoading();
+        }
+    }
 
     return (
         <AuthenticationBackground
@@ -42,14 +94,26 @@ const RegisterScreen = (props: Props) => {
                             label="Username"
                             preffix={<PersonIcon />}
                             placeholder="CharlesDhiya"
-                            onChangeText={setUsername}
+                            errorMessage={usernameErrorText}
+                            onChangeText={value => {
+                                setUsername(value);
+                                if (!usernameTouched) {
+                                    setUsernameTouched(true);
+                                }
+                            }}
                         />
                         <View style={tw`h-6`} />
                         <CustomTextInput
                             value={email}
                             label="Email"
                             autoCapitalize='none'
-                            onChangeText={setEmail}
+                            errorMessage={emailErrorText}
+                            onChangeText={value => {
+                                setEmail(value);
+                                if (!emailTouched) {
+                                    setEmailTouched(true);
+                                }
+                            }}
                             preffix={<EmailIcon />}
                             keyboardType='email-address'
                             placeholder="example@gmail.com"
@@ -59,14 +123,22 @@ const RegisterScreen = (props: Props) => {
                             value={password}
                             label="Password"
                             isPassword={true}
+                            autoCapitalize='none'
                             preffix={<KeyIcon />}
-                            onChangeText={setPassword}
+                            errorMessage={passwordErrorText}
+                            onChangeText={value => {
+                                setPassword(value);
+                                if (!passwordTouched) {
+                                    setPasswordTouched(true);
+                                }
+                            }}
                             placeholder={translate('enterYourPassword')}
                         />
                         <View style={tw`h-10`} />
                         <CustomButton
                             title={translate('register')}
-                            onPress={() => {}}
+                            onPress={handleRegister}
+                            disabled={username.length === 0 || email.length === 0 || password.length === 0}
                         />
                         <View style={tw`h-5`} />
                     </View>

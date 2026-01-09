@@ -8,6 +8,7 @@ import { UserData, UserRequest } from "../types/user";
 type AuthenticationState = {
     createUser: (request: UserRequest) => Promise<GlobalResponse<UserData>>;
     login: (request: UserRequest) => Promise<GlobalResponse<UserData>>;
+    logout: () => Promise<GlobalResponse<null>>;
 };
 
 const useAuthenticationStore = create<AuthenticationState>(() => ({
@@ -16,8 +17,10 @@ const useAuthenticationStore = create<AuthenticationState>(() => ({
             const response = await api.post('/user/', {...request});
 
             if (response.data.status === 201) {
-                await AsyncStorage.setItem("user", JSON.stringify(response.data.data));
-
+                await AsyncStorage.setItem("user", JSON.stringify(response.data.data.user));
+                await AsyncStorage.setItem("access_token", JSON.stringify(response.data.data.user.access_token));
+                await AsyncStorage.setItem("refresh_token", JSON.stringify(response.data.data.user.refresh_token));
+                
                 return {
                     status: response.data.status,
                     message: response.data.message,
@@ -45,11 +48,38 @@ const useAuthenticationStore = create<AuthenticationState>(() => ({
 
             if (response.data.status === 200) {
                 await AsyncStorage.setItem("user", JSON.stringify(response.data.data));
+                await AsyncStorage.setItem("access_token", JSON.stringify(response.data.data.access_token));
+                await AsyncStorage.setItem("refresh_token", JSON.stringify(response.data.data.refresh_token));
 
                 return {
                     status: response.data.status,
                     message: response.data.message,
                     data: response.data.data,
+                }
+            } else {
+                return {
+                    status: response.data.status,
+                    message: response.data.message,
+                }
+            }
+            
+        } catch (error) {
+            const axiosError = error as AxiosError<{ status: number; message: string }>;
+            return {
+                status: axiosError.response?.data?.status,
+                message: axiosError.response?.data?.message,
+            }
+        }
+    },
+
+    logout: async () => {
+        try {
+            const response = await api.post('/authentication/logout/');
+
+            if (response.data.status === 200) {
+                return {
+                    status: response.data.status,
+                    message: response.data.message,
                 }
             } else {
                 return {

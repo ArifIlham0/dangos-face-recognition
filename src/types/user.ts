@@ -1,3 +1,5 @@
+import { UserFaceDetail } from "./userFace";
+
 type UserData = {
     id?: number | null;
     username?: string | null;
@@ -19,4 +21,9 @@ type UserRequest = {
     password?: string | null;
 }
 
-export type { UserData, UserRequest };
+type UserDetail = {
+    user: UserData | null;
+    user_face: UserFaceDetail | null;
+}
+
+export type { UserData, UserRequest, UserDetail };

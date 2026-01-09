@@ -20,7 +20,7 @@ const SplashScreen = (props: Props) => {
             if (user) {
                 props.navigation.replace('Home')
             } else {
-                props.navigation.replace('Login')
+                props.navigation.replace('LoginFace')
             }
         }
         const timeout = setTimeout(checkUser, 1000)

@@ -16,14 +16,19 @@ type Locale = {
 }
 
 type GlobalResponse<T> = {
-  status?: number;
-  message?: string;
-  data?: T;
+  status?: number | null;
+  message?: string | null;
+  data?: T | null;
+  total_item?: number | null;
+  page?: number | null;
+  page_size?: number | null;
+  total_page?: number | null;
 }
 
 type GlobalQueryParams = {
-  page?: number;
-  page_size?: number;
+  page?: number | null;
+  page_size?: number | null;
+  query?: string | null;
 }
 
 export type { Theme, Translations, Locale, GlobalResponse, GlobalQueryParams };

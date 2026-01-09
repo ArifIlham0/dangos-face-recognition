@@ -40,6 +40,10 @@ const id: Translations['id'] = {
   profile: 'Profil',
   youSureLogout: 'Apakah Anda yakin ingin keluar?',
   anErrorOccurred: 'Terjadi kesalahan, silakan coba lagi.',
+  faceNotRecognized: 'Wajah atau akun Anda tidak terdaftar, daftarkan akun?',
+  usernameAtLeast6: 'Username minimal 6 karakter',
+  usernameShouldNotContainSpaces: 'Username tidak boleh mengandung spasi',
+  passwordAtLeast6: 'Password minimal 6 karakter',
 };
 
 export default id;

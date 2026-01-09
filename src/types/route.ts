@@ -3,7 +3,7 @@ type RootStackParamList = {
     Login: undefined;
     Register: undefined;
     LoginFace: undefined;
-    FrontCamera: undefined;
+    FrontCamera: { flow?: 'register' | 'loginFace' | 'home' | 'update' } | undefined;
     Home: undefined;
     Users: undefined;
     EditUser: undefined;

@@ -1,19 +1,22 @@
-import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native'
-import React from 'react'
+import { View, Text, TouchableOpacity, ScrollView, Image, RefreshControl } from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
 import LinearGradient from 'react-native-linear-gradient'
 import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
+import { UserDetail } from '../../types/user'
 import { useFormatDate } from '../../utils/date'
+import useUserStore from '../../stores/userStore'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
 import { activeHistories } from '../../constants/data'
+import { LocalStorage } from '../../utils/localStorage'
 import { useAlertStore } from '../../stores/alertStore'
 import { CameraIcon, ClockIcon } from '../../../assets/icons'
 import { Dimension, useDimensionInsets } from '../../utils/dimension'
+import useAuthenticationStore from '../../stores/authenticationStore'
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -23,27 +26,75 @@ type Props = {
 const HomeScreen = (props: Props) => {
   const { borderWidth = 6 } = props
 
-  const { translate } = useGlobalStore();
+  const { translate, showLoading, hideLoading } = useGlobalStore();
   const { showAlert, hideAlert } = useAlertStore();
+  const { logout } = useAuthenticationStore();
+  const { fetchUser, fetchUsers } = useUserStore();
   const { insets } = useDimensionInsets();
   const formatDate = useFormatDate();
+
+  const [user, setUser] = useState<UserDetail>({user: {}, user_face: {}});
+  const [refreshing, setRefreshing] = useState(false);
+  const [totalUsers, setTotalUsers] = useState(0);
+
+  const fetchInitData = useCallback(async () => {
+    try {
+      showLoading();
+      const response = await fetchUser();
+
+      if (response.status === 200) {
+        setUser(response.data || {user: {}, user_face: {}});
+      } else if (response.status === 404) {
+        props.navigation.replace('FrontCamera', { flow: 'home' });
+      }
+
+      const responseUsers = await fetchUsers({ page: 1, page_size: 15 });
+      
+      if (responseUsers.status === 200) {
+        setTotalUsers(responseUsers.total_item || 0);
+      }
+    } finally {
+      hideLoading();
+    }
+  }, [fetchUser, fetchUsers, props.navigation, showLoading, hideLoading]);
+
+  useEffect(() => {
+    fetchInitData();
+  }, [fetchInitData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchInitData();
+    setRefreshing(false);
+  }, [fetchInitData]);
 
   const handleLogout = async () => {
     showAlert(
       translate('youSureLogout'),
       async () => {
-        await AsyncStorage.removeItem('user')
-        props.navigation.replace('LoginFace')
         hideAlert()
+        showLoading();
+        await logout();
+        await LocalStorage.clear();
+        props.navigation.replace('LoginFace')
+        hideLoading();
       },
       true
-    )
+    );
   }
 
   return (
     <ScrollView
-      bounces={false}
+      bounces={true}
       contentContainerStyle={[tw`w-full`, { paddingBottom: insets.bottom }]}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[COLORS.primary]}
+          tintColor={COLORS.primary}
+        />
+      }
     >
       <LinearGradient
         colors={[COLORS.primary, COLORS.secondary]}
@@ -73,7 +124,7 @@ const HomeScreen = (props: Props) => {
             </Text>
             <View style={tw`h-1`} />
             <Text style={[tw`text-[20px]`, { fontFamily: Fonts.medium, color: COLORS.darkBlue }]}>
-              Muhammad Arif Ilham
+              {user.user?.first_name || "-"}
             </Text>
             <View style={tw`h-4`} />
           </TouchableOpacity>
@@ -100,7 +151,7 @@ const HomeScreen = (props: Props) => {
                   </Text>
                   <View style={tw`h-1`} />
                   <Text style={[tw`text-[28px] text-white`, { fontFamily: Fonts.bold }]}>
-                    580
+                    {totalUsers}
                   </Text>
                 </View>
               </View>
@@ -114,7 +165,7 @@ const HomeScreen = (props: Props) => {
           <View style={tw`h-2`} />
           <TouchableOpacity
             activeOpacity={0.6}
-            onPress={() => props.navigation.navigate("FrontCamera")}
+            onPress={() => props.navigation.navigate("FrontCamera", { flow: 'update' })}
             style={[tw`border p-1 rounded-md border-2`, { borderColor: COLORS.secondary }]}
           >
             <View style={[
@@ -167,7 +218,8 @@ const HomeScreen = (props: Props) => {
             style={[tw` self-center rounded-full absolute -top-15 border border-white`, { borderWidth: borderWidth }]}
           >
             <Image
-              source={require("../../../assets/images/profile_photo.jpg")}
+              resizeMode='cover'
+              source={{ uri: user.user_face?.image || "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png" }}
               style={[tw`w-35 h-35 rounded-full`]}
             />
           </TouchableOpacity>

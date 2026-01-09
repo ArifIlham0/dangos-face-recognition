@@ -32,7 +32,7 @@ const LoginFaceScreen = (props: Props) => {
                         </Text>
                         <View style={tw`h-20`} />
                         <TouchableOpacity
-                            onPress={() => props.navigation.navigate('FrontCamera')}
+                            onPress={() => props.navigation.navigate('FrontCamera', { flow: 'loginFace' })}
                         >
                             <PersonRecognizeIcon />
                         </TouchableOpacity>

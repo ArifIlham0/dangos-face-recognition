@@ -12,6 +12,7 @@ import {
   SplashScreen,
   UsersScreen,
   EditUserScreen,
+  ActiveHistoryDetailScreen,
 } from './screens';
 
 const Stack = createNativeStackNavigator();
@@ -35,6 +36,7 @@ const AppNavigator = () => {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Users" component={UsersScreen} />
           <Stack.Screen name="EditUser" component={EditUserScreen} />
+          <Stack.Screen name="ActiveHistoryDetail" component={ActiveHistoryDetailScreen} />
           <Stack.Screen 
             name="FrontCamera" 
             component={FrontCameraScreen}

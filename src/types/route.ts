@@ -7,6 +7,7 @@ type RootStackParamList = {
     Home: { isRefresh?: boolean } | undefined;
     Users: undefined;
     EditUser: { isRefresh?: boolean } | undefined;
+    ActiveHistoryDetail: { id: number };
 };
 
 export type { RootStackParamList };

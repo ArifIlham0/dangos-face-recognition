@@ -1,3 +1,4 @@
+import ActiveHistoryDetailScreen from "./activeHistory/ActiveHistoryDetailScreen";
 import SplashScreen from "./initial/SplashScreen";
 import LoginScreen from "./authentication/LoginScreen";
 import RegisterScreen from "./authentication/RegisterScreen";
@@ -7,4 +8,14 @@ import HomeScreen from "./main/HomeScreen";
 import EditUserScreen from "./users/EditUserScreen";
 import UsersScreen from "./users/UsersScreen";
 
-export { SplashScreen, LoginScreen, RegisterScreen, LoginFaceScreen, FrontCameraScreen, HomeScreen, EditUserScreen, UsersScreen };
+export {
+    ActiveHistoryDetailScreen,
+    SplashScreen,
+    LoginScreen,
+    RegisterScreen,
+    LoginFaceScreen,
+    FrontCameraScreen,
+    HomeScreen,
+    EditUserScreen,
+    UsersScreen,
+};

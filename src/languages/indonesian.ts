@@ -46,6 +46,12 @@ const id: Translations['id'] = {
   usernameShouldNotContainSpaces: 'Username tidak boleh mengandung spasi',
   passwordAtLeast6: 'Password minimal 6 karakter',
   thereIsNoYet: 'Belum ada {{value}}',
+  loginHistoryDetail: 'Detail Riwayat Masuk',
+  deviceInformation: 'Informasi Perangkat',
+  operatingSystem: 'Sistem Operasi',
+  deviceModel: 'Model Perangkat',
+  loginTime: 'Waktu Masuk',
+  lastUpdated: 'Terakhir Diperbarui',
 };
 
 export default id;

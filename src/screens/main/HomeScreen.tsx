@@ -223,7 +223,7 @@ const HomeScreen = (props: Props) => {
               activeHistories.map((item, index) => (
                 <View key={index} style={tw`w-full`}>
                   <TouchableOpacity
-                    onPress={() => {}}
+                    onPress={() => props.navigation.navigate("ActiveHistoryDetail", { id: item.id || 0 })}
                     style={tw`bg-white rounded-md shadow-md px-3 py-2 mb-3`}
                   >
                     <Text style={[tw`text-[16px]`, { fontFamily: Fonts.semiBold, color: COLORS.text }]}>

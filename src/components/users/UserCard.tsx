@@ -1,11 +1,11 @@
 import { View, Text, Image, TouchableOpacity } from 'react-native'
 import React from 'react'
 import tw from 'twrnc'
-import COLORS from '../constants/color'
-import { Fonts } from '../constants/font'
+import COLORS from '../../constants/color'
+import { Fonts } from '../../constants/font'
 import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6'
-import { SlingBagIcon } from '../../assets/icons'
-import useGlobalStore from '../stores/globalStore'
+import { SlingBagIcon } from '../../../assets/icons'
+import useGlobalStore from '../../stores/globalStore'
 
 type Props = {
     name: string;

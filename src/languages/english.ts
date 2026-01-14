@@ -46,6 +46,12 @@ const en: Translations['en'] = {
   usernameShouldNotContainSpaces: 'Username should not contain spaces',
   passwordAtLeast6: 'Password at least 6 characters',
   thereIsNoYet: 'There is no {{value}} yet',
+  loginHistoryDetail: 'Login History Detail',
+  deviceInformation: 'Device Information',
+  operatingSystem: 'Operating System',
+  deviceModel: 'Device Model',
+  loginTime: 'Login Time',
+  lastUpdated: 'Last Updated',
 };
 
 export default en;

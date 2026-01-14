@@ -44,6 +44,7 @@ const en: Translations['en'] = {
   usernameAtLeast6: 'Username at least 6 characters',
   usernameShouldNotContainSpaces: 'Username should not contain spaces',
   passwordAtLeast6: 'Password at least 6 characters',
+  thereIsNoYet: 'There is no {{value}} yet',
 };
 
 export default en;

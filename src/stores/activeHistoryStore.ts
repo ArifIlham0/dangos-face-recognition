@@ -1,35 +1,31 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
 import { create } from "zustand";
 import api from "../services/api";
-import { UserDetail } from "../types/user";
 import { LocalStorage } from "../utils/localStorage";
 import { headersWithToken } from "../services/header";
 import { GlobalQueryParams, GlobalResponse } from "../types/global";
+import { ActiveHistory, ActiveHistoryRequest } from "../types/activeHistory";
 
-type UserState = {
-    fetchUser: () => Promise<GlobalResponse<UserDetail>>;
-    fetchUsers: (params: GlobalQueryParams) => Promise<GlobalResponse<UserDetail[]>>;
+type ActiveHistoryState = {
+    createActiveHistory: (request: ActiveHistoryRequest) => Promise<GlobalResponse<null>>;
+    fetchActiveHistories: (params: GlobalQueryParams) => Promise<GlobalResponse<ActiveHistory[]>>;
 };
 
-const useUserStore = create<UserState>(() => ({
-    fetchUser: async () => {
+const useActiveHistoryStore = create<ActiveHistoryState>(() => ({
+    createActiveHistory: async (request: ActiveHistoryRequest) => {
         try {
-            const user = await LocalStorage.user();
             const accessToken = await LocalStorage.accessToken();
 
-            const response = await api.get(
-                `/user/${user?.id}/`,
+            const response = await api.post(
+                '/active-history/',
+                request,
                 { headers: headersWithToken(accessToken || "") },
             );
 
             if (response.data.status === 200) {
-                await AsyncStorage.setItem("user", JSON.stringify(response.data.data.user));
-
                 return {
                     status: response.data.status,
                     message: response.data.message,
-                    data: response.data.data,
                 }
             } else {
                 return {
@@ -47,14 +43,12 @@ const useUserStore = create<UserState>(() => ({
         }
     },
 
-    fetchUsers: async (params: GlobalQueryParams) => {
+    fetchActiveHistories: async (params: GlobalQueryParams) => {
         try {
             const accessToken = await LocalStorage.accessToken();
-            console.log("Access token", accessToken);
-            
 
             const response = await api.get(
-                `/user/`,
+                '/active-history/fetch/',
                 { headers: headersWithToken(accessToken || ""), params: params },
             );
 
@@ -63,10 +57,6 @@ const useUserStore = create<UserState>(() => ({
                     status: response.data.status,
                     message: response.data.message,
                     data: response.data.data,
-                    total_item: response.data.total_item,
-                    page: response.data.page,
-                    page_size: response.data.page_size,
-                    total_page: response.data.total_page,
                 }
             } else {
                 return {
@@ -85,4 +75,4 @@ const useUserStore = create<UserState>(() => ({
     },
 }));
 
-export default useUserStore;
+export default useActiveHistoryStore;

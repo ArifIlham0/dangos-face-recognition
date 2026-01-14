@@ -104,7 +104,6 @@ const FrontCameraScreen = (props: Props) => {
                 device={device}
                 style={tw`flex-1`}
             />
-            {/* Frame Photo */}
             <View style={tw`absolute w-full h-full items-center justify-center`}>
                 <View style={[tw`relative w-[320px] h-[350px]`]}>
                     <View style={tw`absolute -inset-[2px] bg-transparent`} />

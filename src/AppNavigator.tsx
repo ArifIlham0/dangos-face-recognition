@@ -38,7 +38,7 @@ const AppNavigator = () => {
           <Stack.Screen 
             name="FrontCamera" 
             component={FrontCameraScreen}
-            options={{ presentation: 'fullScreenModal' }}
+            options={{ presentation: 'modal' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

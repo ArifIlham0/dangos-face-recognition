@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
 import LinearGradient from 'react-native-linear-gradient'
+import DeviceInfo from 'react-native-device-info';
 import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
@@ -11,12 +12,13 @@ import { useFormatDate } from '../../utils/date'
 import useUserStore from '../../stores/userStore'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
-import { activeHistories } from '../../constants/data'
-import { LocalStorage } from '../../utils/localStorage'
 import { useAlertStore } from '../../stores/alertStore'
+import { defaultProfileUrl } from '../../constants/data'
+import { ActiveHistory } from '../../types/activeHistory'
 import { CameraIcon, ClockIcon } from '../../../assets/icons'
-import { Dimension, useDimensionInsets } from '../../utils/dimension'
+import useActiveHistoryStore from '../../stores/activeHistoryStore'
 import useAuthenticationStore from '../../stores/authenticationStore'
+import { Dimension, useDimensionInsets } from '../../utils/dimension'
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -30,14 +32,16 @@ const HomeScreen = (props: Props) => {
   const { showAlert, hideAlert } = useAlertStore();
   const { logout } = useAuthenticationStore();
   const { fetchUser, fetchUsers } = useUserStore();
+  const { createActiveHistory, fetchActiveHistories } = useActiveHistoryStore();
   const { insets } = useDimensionInsets();
   const formatDate = useFormatDate();
 
   const [user, setUser] = useState<UserDetail>({user: {}, user_face: {}});
+  const [activeHistories, setActiveHistories] = useState<ActiveHistory[]> ([]);
   const [refreshing, setRefreshing] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
 
-  const fetchInitData = useCallback(async () => {
+  const fetchInitData = useCallback(async (isRefresh = false) => {
     try {
       showLoading();
       const response = await fetchUser();
@@ -49,14 +53,26 @@ const HomeScreen = (props: Props) => {
       }
 
       const responseUsers = await fetchUsers({ page: 1, page_size: 15 });
-      
+
       if (responseUsers.status === 200) {
         setTotalUsers(responseUsers.total_item || 0);
+      }
+
+      if (!isRefresh) {
+        await createActiveHistory({
+          operating_system: DeviceInfo.getSystemName(),
+          model: DeviceInfo.getModel(),
+        });
+      }
+      const responseActiveHistories = await fetchActiveHistories({ page: 1, page_size: 12 });
+
+      if (responseActiveHistories.status === 200) {
+        setActiveHistories(responseActiveHistories.data || []);
       }
     } finally {
       hideLoading();
     }
-  }, [fetchUser, fetchUsers, props.navigation, showLoading, hideLoading]);
+  }, [fetchUser, fetchUsers, props.navigation, showLoading, hideLoading, createActiveHistory, fetchActiveHistories]);
 
   useEffect(() => {
     fetchInitData();
@@ -64,7 +80,7 @@ const HomeScreen = (props: Props) => {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchInitData();
+    await fetchInitData(true);
     setRefreshing(false);
   }, [fetchInitData]);
 
@@ -75,7 +91,6 @@ const HomeScreen = (props: Props) => {
         hideAlert()
         showLoading();
         await logout();
-        await LocalStorage.clear();
         props.navigation.replace('LoginFace')
         hideLoading();
       },
@@ -186,26 +201,34 @@ const HomeScreen = (props: Props) => {
           </Text>
           <View style={tw`h-4`} />
           <View style={tw`flex-row flex-wrap`}>
-            {activeHistories.map((item, index) => (
-              <View key={index} style={tw`w-full`}>
-                <TouchableOpacity
-                  onPress={() => {}}
-                  style={tw`bg-white rounded-md shadow-md px-3 py-2 mb-3`}
-                >
-                  <Text style={[tw`text-[16px]`, { fontFamily: Fonts.semiBold, color: COLORS.text }]}>
-                    {item.day}
-                  </Text>
-                  <View style={tw`h-1`} />
-                  <View style={tw`flex-row items-center`}>
-                    <ClockIcon />
-                    <View style={tw`w-2`} />
-                    <Text style={[tw`text-[12px] text-gray-500`, { fontFamily: Fonts.regular }]}>
-                      {formatDate(item.date)}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
+            {activeHistories.length === 0 ? (
+              <View style={tw`w-full items-center pt-5`}>
+                <Text style={[tw`text-[14px]`, { fontFamily: Fonts.regular, color: COLORS.grey }]}>
+                  {translate("thereIsNoYet", { value: translate("loginHistory") })}
+                </Text>
               </View>
-            ))}
+            ) : (
+              activeHistories.map((item, index) => (
+                <View key={index} style={tw`w-full`}>
+                  <TouchableOpacity
+                    onPress={() => {}}
+                    style={tw`bg-white rounded-md shadow-md px-3 py-2 mb-3`}
+                  >
+                    <Text style={[tw`text-[16px]`, { fontFamily: Fonts.semiBold, color: COLORS.text }]}>
+                      {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { weekday: 'long' }) : "-"}
+                    </Text>
+                    <View style={tw`h-1`} />
+                    <View style={tw`flex-row items-center`}>
+                      <ClockIcon />
+                      <View style={tw`w-2`} />
+                      <Text style={[tw`text-[12px] text-gray-500`, { fontFamily: Fonts.regular }]}>
+                        {formatDate(item.created_at || "")}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              ))
+            )}
           </View>
           <View style={[
             tw`w-39 h-39 self-center rounded-full absolute -top-17 border border-white bg-white opacity-30`,
@@ -219,7 +242,7 @@ const HomeScreen = (props: Props) => {
           >
             <Image
               resizeMode='cover'
-              source={{ uri: user.user_face?.image || "https://upload.wikimedia.org/wikipedia/commons/0/03/Twitter_default_profile_400x400.png" }}
+              source={{ uri: user.user_face?.image || defaultProfileUrl }}
               style={[tw`w-35 h-35 rounded-full`]}
             />
           </TouchableOpacity>

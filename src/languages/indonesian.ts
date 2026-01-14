@@ -44,6 +44,7 @@ const id: Translations['id'] = {
   usernameAtLeast6: 'Username minimal 6 karakter',
   usernameShouldNotContainSpaces: 'Username tidak boleh mengandung spasi',
   passwordAtLeast6: 'Password minimal 6 karakter',
+  thereIsNoYet: 'Belum ada {{value}}',
 };
 
 export default id;

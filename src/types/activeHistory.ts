@@ -3,7 +3,7 @@ type ActiveHistoryRequest = {
     model?: string | null;
 }
 
-type ActiveHistory = {
+type ActiveHistoryData = {
     id?: number | null;
     custom_user?: number | null;
     custom_user_id?: number | null;
@@ -13,4 +13,4 @@ type ActiveHistory = {
     updated_at?: string | null;
 };
 
-export type { ActiveHistoryRequest, ActiveHistory };
+export type { ActiveHistoryRequest, ActiveHistoryData };

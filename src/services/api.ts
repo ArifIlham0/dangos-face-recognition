@@ -11,6 +11,7 @@ api.interceptors.request.use(
     const url = config.url;
     if (__DEV__) console.log('Request URL:', baseURL + url);
     if (__DEV__) console.log('Request Data:', config.data);
+    if (__DEV__) console.log('Request Params:', config.params);
     if (__DEV__) console.log('Request Headers:', config.headers);
     return config;
   },

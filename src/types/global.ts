@@ -20,6 +20,7 @@ type GlobalResponse<T> = {
   message?: string | null;
   data?: T | null;
   total_item?: number | null;
+  total_data?: number | null;
   page?: number | null;
   page_size?: number | null;
   total_page?: number | null;
@@ -29,6 +30,8 @@ type GlobalQueryParams = {
   page?: number | null;
   page_size?: number | null;
   query?: string | null;
+  is_excluded?: boolean | null;
+  job?: string | null;
 }
 
 export type { Theme, Translations, Locale, GlobalResponse, GlobalQueryParams };

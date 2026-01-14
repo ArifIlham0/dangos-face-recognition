@@ -1,5 +1,14 @@
-import { View, Text, TouchableOpacity, FlatList, TextInput, TouchableWithoutFeedback, Keyboard } from 'react-native'
-import React, { useState } from 'react'
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    FlatList,
+    TextInput,
+    TouchableWithoutFeedback,
+    Keyboard,
+    RefreshControl,
+} from 'react-native'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6'
 import LinearGradient from 'react-native-linear-gradient'
@@ -7,9 +16,13 @@ import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { UserCard } from '../../components'
 import { Fonts } from '../../constants/font'
+import { UserDetail } from '../../types/user'
+import { FilterOption } from '../../types/filter'
+import useUserStore from '../../stores/userStore'
 import { FilterIcon } from '../../../assets/icons'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
+import { defaultProfileUrl } from '../../constants/data'
 import { useDimensionInsets } from '../../utils/dimension'
 import FilterModal from '../../components/users/FilterModal'
 import ListUsersEmpty from '../../components/users/ListUsersEmpty'
@@ -18,44 +31,101 @@ type Props = {
     navigation: NativeStackNavigationProp<RootStackParamList, 'Users'>;
 }
 
-type User = {
-    id: string;
-    name: string;
-    role: string;
-    imageUrl?: string;
-}
-
 const UsersScreen = (props: Props) => {
-    const { translate } = useGlobalStore();
     const { insets } = useDimensionInsets();
+    
+    const { translate, showLoading, hideLoading } = useGlobalStore();
+    const { fetchUsers, fetchUserJobs } = useUserStore();
 
+    const [page, setPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('')
-    const [filterModalVisible, setFilterModalVisible] = useState(false)
-    const [selectedFilter, setSelectedFilter] = useState('all')
+    const [selectedFilter, setSelectedFilter] = useState('')
+    const [hasMore, setHasMore] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+    const [filterModalVisible, setFilterModalVisible] = useState(false);
+    const [users, setUsers] = useState<UserDetail[]>([])
+    const [userJobs, setUserJobs] = useState<string[]>([])
+    const isFetchingRef = useRef(false);
+    const isFirstRender = useRef(true);
 
-    const [users] = useState<User[]>([
-        { id: '1', name: 'John Doe', role: 'Administrator', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '2', name: 'Jane Smith', role: 'Manager', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '3', name: 'Mike Johnson', role: 'Employee', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '4', name: 'Sarah Williams', role: 'Employee', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '5', name: 'David Brown', role: 'Manager', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '6', name: 'Emily Davis', role: 'Employee' },
-        { id: '7', name: 'Chris Wilson', role: 'Administrator', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-        { id: '8', name: 'Lisa Anderson', role: 'Employee', imageUrl: 'https://www.arifilham.my.id/assets/profile_photo-Cn271RVL.jpg' },
-    ])
 
-    const filterOptions = [
-        { label: translate('all'), value: 'all' },
-        { label: 'Administrator', value: 'Administrator' },
-        { label: 'Manager', value: 'Manager' },
-        { label: 'Employee', value: 'Employee' },
-    ]
+    const fetchUserJobsData = useCallback(async () => {
+        const responseUserJobs = await fetchUserJobs({ page: 1, page_size: 15 });
+        if (responseUserJobs.status === 200) {
+            setUserJobs(responseUserJobs.data || []);
+        }
+    }, [fetchUserJobs]);
 
-    const filteredUsers = users.filter(user => {
-        const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesFilter = selectedFilter === 'all' || user.role === selectedFilter
-        return matchesSearch && matchesFilter
-    })
+    const fetchUsersData = useCallback(async ({pageNumber = 1, append = false, shouldFetchJobs = false}) => {
+        if (isFetchingRef.current) return;
+        isFetchingRef.current = true;
+        if (!append) showLoading();
+
+        try {
+            const response = await fetchUsers({
+                page: pageNumber,
+                page_size: 15,
+                is_excluded: true,
+                query: searchQuery,
+                job: selectedFilter || "",
+            });
+
+            if (response.status === 200) {
+                const newUsers = response.data || [];
+                setUsers(prev => append ? [...prev, ...newUsers] : newUsers);
+                setHasMore(newUsers.length === 15);
+                setPage(pageNumber);
+            }
+
+            if (shouldFetchJobs) {
+                await fetchUserJobsData();
+            }
+
+        } finally {
+            isFetchingRef.current = false;
+            hideLoading();
+        }
+    }, [fetchUsers, searchQuery, selectedFilter, showLoading, hideLoading, fetchUserJobsData]);
+
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            fetchUsersData({ pageNumber: 1, shouldFetchJobs: true });
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            setPage(1);
+            setHasMore(true);
+            fetchUsersData({ pageNumber: 1, shouldFetchJobs: false });
+        }, 300);
+
+        return () => clearTimeout(timeout); 
+    }, [searchQuery, selectedFilter, fetchUsersData]);
+
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        await fetchUsersData({ pageNumber: 1, append: false, shouldFetchJobs: true });
+        setRefreshing(false);
+      }, [fetchUsersData]);
+
+    const filterOptions: FilterOption[] = [
+        { label: translate("all"), value: "" },
+        ...userJobs.map((job) => ({
+            label: job,
+            value: job,
+        })),
+    ];
+
+    const onEndReached = useCallback(() => {
+        if (!hasMore || isFetchingRef.current) return;
+
+        fetchUsersData({
+            pageNumber: page + 1,
+            append: true,
+            shouldFetchJobs: false,
+        });
+    }, [hasMore, page, fetchUsersData]);
 
     const clearQuery = () => {
         setSearchQuery('')
@@ -101,10 +171,10 @@ const UsersScreen = (props: Props) => {
                             onPress={() => setFilterModalVisible(true)}
                             style={[
                                 tw`w-8 h-8 rounded-full items-center justify-center shadow-md`,
-                                { backgroundColor: selectedFilter === 'all' ? COLORS.white : COLORS.lightBlue }
+                                { backgroundColor: selectedFilter === "" ? COLORS.white : COLORS.lightBlue }
                             ]}
                         >
-                            <FilterIcon color={selectedFilter === 'all' ? COLORS.black : COLORS.white} />
+                            <FilterIcon color={selectedFilter === "" ? COLORS.black : COLORS.white} />
                         </TouchableOpacity>
                     </View>
                     <View style={tw`h-4`} />
@@ -142,31 +212,41 @@ const UsersScreen = (props: Props) => {
                     </View>
                 </View>
                 <FlatList
+                    data={users}
                     bounces={true}
-                    data={filteredUsers}
-                    keyExtractor={(item) => item.id}
-                    contentContainerStyle={tw``}
+                    onEndReachedThreshold={0.2}
+                    onEndReached={onEndReached}
+                    contentContainerStyle={tw`pb-4`}
+                    keyExtractor={(item) => item.id?.toString() || ""}
                     style={[tw`flex-6`, { backgroundColor: COLORS.background }]}
                     renderItem={({ item }) => (
                         <UserCard
-                            name={item.name}
-                            role={item.role}
-                            imageUrl={item.imageUrl}
+                            role={item.user?.job || translate('noJob')}
                             onPress={() => console.log('View user:', item)}
+                            imageUrl={item.user_face?.image || defaultProfileUrl}
+                            name={`${item.user?.first_name} ${item.user?.last_name}`}
                         />
                     )}
                     ListEmptyComponent={
                         <ListUsersEmpty />
                     }
+                    refreshControl={
+                        <RefreshControl
+                            onRefresh={onRefresh}
+                            refreshing={refreshing}
+                            colors={[COLORS.primary]}
+                            tintColor={COLORS.primary}
+                        />
+                    }
                 />
                 <FilterModal
-                    visible={filterModalVisible}
-                    onClose={() => setFilterModalVisible(false)}
                     options={filterOptions}
                     selected={selectedFilter}
-                    onSelect={setSelectedFilter}
-                    onReset={() => setSelectedFilter('all')}
                     bottomInset={insets.bottom}
+                    visible={filterModalVisible}
+                    onSelect={setSelectedFilter}
+                    onReset={() => setSelectedFilter('')}
+                    onClose={() => setFilterModalVisible(false)}
                 />
             </View>
         </TouchableWithoutFeedback>

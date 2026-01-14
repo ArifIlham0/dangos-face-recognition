@@ -14,7 +14,7 @@ import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
 import { useAlertStore } from '../../stores/alertStore'
 import { defaultProfileUrl } from '../../constants/data'
-import { ActiveHistory } from '../../types/activeHistory'
+import { ActiveHistoryData } from '../../types/activeHistory'
 import { CameraIcon, ClockIcon } from '../../../assets/icons'
 import useActiveHistoryStore from '../../stores/activeHistoryStore'
 import useAuthenticationStore from '../../stores/authenticationStore'
@@ -37,7 +37,7 @@ const HomeScreen = (props: Props) => {
   const formatDate = useFormatDate();
 
   const [user, setUser] = useState<UserDetail>({user: {}, user_face: {}});
-  const [activeHistories, setActiveHistories] = useState<ActiveHistory[]> ([]);
+  const [activeHistories, setActiveHistories] = useState<ActiveHistoryData[]> ([]);
   const [refreshing, setRefreshing] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
 
@@ -55,7 +55,7 @@ const HomeScreen = (props: Props) => {
       const responseUsers = await fetchUsers({ page: 1, page_size: 15 });
 
       if (responseUsers.status === 200) {
-        setTotalUsers(responseUsers.total_item || 0);
+        setTotalUsers(responseUsers.total_data || 0);
       }
 
       if (!isRefresh) {
@@ -69,6 +69,7 @@ const HomeScreen = (props: Props) => {
       if (responseActiveHistories.status === 200) {
         setActiveHistories(responseActiveHistories.data || []);
       }
+      
     } finally {
       hideLoading();
     }
@@ -104,8 +105,8 @@ const HomeScreen = (props: Props) => {
       contentContainerStyle={[tw`w-full`, { paddingBottom: insets.bottom }]}
       refreshControl={
         <RefreshControl
-          refreshing={refreshing}
           onRefresh={onRefresh}
+          refreshing={refreshing}
           colors={[COLORS.primary]}
           tintColor={COLORS.primary}
         />
@@ -166,7 +167,11 @@ const HomeScreen = (props: Props) => {
                   </Text>
                   <View style={tw`h-1`} />
                   <Text style={[tw`text-[28px] text-white`, { fontFamily: Fonts.bold }]}>
-                    {totalUsers}
+                    {totalUsers ? (
+                      `${totalUsers - 1}`
+                    ) : (
+                      "0"
+                    )}
                   </Text>
                 </View>
               </View>

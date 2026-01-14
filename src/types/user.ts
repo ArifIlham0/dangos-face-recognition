@@ -22,6 +22,7 @@ type UserRequest = {
 }
 
 type UserDetail = {
+    id?: number | null;
     user: UserData | null;
     user_face: UserFaceDetail | null;
 }

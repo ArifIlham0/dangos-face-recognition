@@ -61,7 +61,10 @@ const FrontCameraScreen = (props: Props) => {
             }
             
             if ((response.status === 200 || response.status === 201) && response.data?.is_verified) {
-                props.navigation.replace('Home')
+                props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                })
             } else if (response.status === 404) {
                 showAlert(
                     translate("faceNotRecognized") ?? translate('anErrorOccurred'),

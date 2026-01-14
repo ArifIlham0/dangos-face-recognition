@@ -52,6 +52,15 @@ const id: Translations['id'] = {
   deviceModel: 'Model Perangkat',
   loginTime: 'Waktu Masuk',
   lastUpdated: 'Terakhir Diperbarui',
+  userDetail: 'Detail Pengguna',
+  personalInformation: 'Informasi Pribadi',
+  fullName: 'Nama Lengkap',
+  username: 'Username',
+  email: 'Email',
+  accountStatus: 'Status Akun',
+  active: 'Aktif',
+  inactive: 'Tidak Aktif',
+  memberSince: 'Anggota Sejak',
 };
 
 export default id;

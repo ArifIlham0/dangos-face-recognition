@@ -64,7 +64,10 @@ const RegisterScreen = (props: Props) => {
 
             if (response.status === 201) {
                 Keyboard.dismiss();
-                props.navigation.replace('FrontCamera', { flow: 'register' });
+                props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'FrontCamera', params: { flow: 'register' } }],
+                })
             } else {
                 showAlert(response.message ?? translate('anErrorOccurred'));
             }

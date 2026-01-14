@@ -1,6 +1,6 @@
 import useGlobalStore from "../stores/globalStore";
 
-const useFormatDate = () => {
+const useFormatDate = ({isTime = true}: { isTime?: boolean } = {}) => {
     const { currentLang } = useGlobalStore();
     return (value: string) => {
         const date = new Date(value);
@@ -14,7 +14,7 @@ const useFormatDate = () => {
         const minutes = date.getMinutes().toString().padStart(2, '0');
         const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
         const timePart = `${hours}:${minutes} ${ampm}`;
-        return `${datePart} ${timePart}`;
+        return isTime ? `${datePart} ${timePart}` : datePart;
     }
 }
 

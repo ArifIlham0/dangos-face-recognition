@@ -19,6 +19,7 @@ import { CameraIcon, ClockIcon } from '../../../assets/icons'
 import useActiveHistoryStore from '../../stores/activeHistoryStore'
 import useAuthenticationStore from '../../stores/authenticationStore'
 import { Dimension, useDimensionInsets } from '../../utils/dimension'
+import { CustomModalPhoto } from '../../components'
 
 type Props = {
   navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
@@ -40,6 +41,7 @@ const HomeScreen = (props: Props) => {
   const [activeHistories, setActiveHistories] = useState<ActiveHistoryData[]> ([]);
   const [refreshing, setRefreshing] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [isImageModalVisible, setIsImageModalVisible] = useState(false);
 
   const fetchInitData = useCallback(async (isRefresh = false) => {
     try {
@@ -99,7 +101,10 @@ const HomeScreen = (props: Props) => {
         hideAlert()
         showLoading();
         await logout();
-        props.navigation.replace('LoginFace')
+        props.navigation.reset({
+          index: 0,
+          routes: [{ name: 'LoginFace' }],
+        })
         hideLoading();
       },
       true
@@ -249,7 +254,7 @@ const HomeScreen = (props: Props) => {
           />
           <TouchableOpacity
             activeOpacity={0.6}
-            onPress={() => props.navigation.navigate("EditUser")}
+            onPress={() => setIsImageModalVisible(true)}
             style={[tw` self-center rounded-full absolute -top-15 border border-white`, { borderWidth: borderWidth }]}
           >
             <Image
@@ -275,6 +280,11 @@ const HomeScreen = (props: Props) => {
           name="arrow-right-from-bracket"
         />
       </TouchableOpacity>
+      <CustomModalPhoto
+          visible={isImageModalVisible}
+          onClose={() => setIsImageModalVisible(false)}
+          imageUrl={user.user_face?.image || defaultProfileUrl}
+      />
     </ScrollView>
   )
 }

@@ -222,7 +222,7 @@ const UsersScreen = (props: Props) => {
                     renderItem={({ item }) => (
                         <UserCard
                             role={item.user?.job || translate('noJob')}
-                            onPress={() => console.log('View user:', item)}
+                            onPress={() => props.navigation.navigate("UserDetail", { id: item.id || 0 })}
                             imageUrl={item.user_face?.image || defaultProfileUrl}
                             name={`${item.user?.first_name} ${item.user?.last_name}`}
                         />

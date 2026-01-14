@@ -52,6 +52,15 @@ const en: Translations['en'] = {
   deviceModel: 'Device Model',
   loginTime: 'Login Time',
   lastUpdated: 'Last Updated',
+  userDetail: 'User Detail',
+  personalInformation: 'Personal Information',
+  fullName: 'Full Name',
+  username: 'Username',
+  email: 'Email',
+  accountStatus: 'Account Status',
+  active: 'Active',
+  inactive: 'Inactive',
+  memberSince: 'Member Since',
 };
 
 export default en;

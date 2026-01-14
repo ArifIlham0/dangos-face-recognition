@@ -46,7 +46,10 @@ const LoginScreen = (props: Props) => {
             })
 
             if (response.status === 200) {
-                props.navigation.replace('Home')
+                props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                })
             } else {
                 showAlert(response.message ?? translate('anErrorOccurred'))
             }

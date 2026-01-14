@@ -8,25 +8,27 @@ import { headersWithToken } from "../services/header";
 import { GlobalQueryParams, GlobalResponse } from "../types/global";
 
 type UserState = {
-    fetchUser: () => Promise<GlobalResponse<UserDetail>>;
+    fetchUser: (id?: number) => Promise<GlobalResponse<UserDetail>>;
     fetchUsers: (params: GlobalQueryParams) => Promise<GlobalResponse<UserDetail[]>>;
     fetchUserJobs: (params: GlobalQueryParams) => Promise<GlobalResponse<string[]>>;
     updateUser: (id: number, request: Partial<UserData>) => Promise<GlobalResponse<null>>;
 };
 
 const useUserStore = create<UserState>(() => ({
-    fetchUser: async () => {
+    fetchUser: async (id?: number) => {
         try {
             const user = await LocalStorage.user();
             const accessToken = await LocalStorage.accessToken();
 
             const response = await api.get(
-                `/user/${user?.id}/`,
+                `/user/${id || user?.id}/`,
                 { headers: headersWithToken(accessToken || "") },
             );
 
             if (response.data.status === 200) {
-                await AsyncStorage.setItem("user", JSON.stringify(response.data.data.user));
+                if (id === undefined) {
+                    await AsyncStorage.setItem("user", JSON.stringify(response.data.data.user));
+                }
 
                 return {
                     status: response.data.status,

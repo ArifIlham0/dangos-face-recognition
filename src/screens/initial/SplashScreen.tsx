@@ -13,14 +13,19 @@ type Props = {
 }
 
 const SplashScreen = (props: Props) => {
-
     useEffect(() => {
         const checkUser = async () => {
             const user = await AsyncStorage.getItem('user')
             if (user) {
-                props.navigation.replace('Home')
+                props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'Home' }],
+                })
             } else {
-                props.navigation.replace('LoginFace')
+                props.navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'LoginFace' }],
+                })
             }
         }
         const timeout = setTimeout(checkUser, 1000)

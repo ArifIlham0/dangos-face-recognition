@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, Image } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6'
@@ -7,44 +7,57 @@ import { RouteProp } from '@react-navigation/native'
 import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
+import { UserDetail } from '../../types/user'
 import { useFormatDate } from '../../utils/date'
-import { ClockIcon } from '../../../assets/icons'
 import { Dimension } from '../../utils/dimension'
+import useUserStore from '../../stores/userStore'
+import { PersonIcon } from '../../../assets/icons'
+import { CustomModalPhoto } from '../../components'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
-import { ActiveHistoryData } from '../../types/activeHistory'
-import useActiveHistoryStore from '../../stores/activeHistoryStore'
+import { defaultProfileUrl } from '../../constants/data'
 import ActiveHistoryDetailTile from '../../components/activeHistory/ActiveHistoryDetailTile'
 
 type Props = {
-    navigation: NativeStackNavigationProp<RootStackParamList, 'ActiveHistoryDetail'>;
-    route: RouteProp<RootStackParamList, 'ActiveHistoryDetail'>;
+    navigation: NativeStackNavigationProp<RootStackParamList, 'UserDetail'>;
+    route: RouteProp<RootStackParamList, 'UserDetail'>;
 }
 
-const ActiveHistoryDetailScreen = (props: Props) => {
+const UserDetailScreen = (props: Props) => {
     const { id } = props.route.params || {};
 
     const { translate, showLoading, hideLoading } = useGlobalStore();
-    const { fetchActiveHistory } = useActiveHistoryStore();
-    const formatDate = useFormatDate();
+    const { fetchUser } = useUserStore();
+    const formatDate = useFormatDate({ isTime: false });
 
-    const [activeHistory, setActiveHistory] = useState<ActiveHistoryData | null>({});
+    const [userDetail, setUserDetail] = useState<UserDetail | null>(null);
+    const [isImageModalVisible, setIsImageModalVisible] = useState(false);
 
     const fetchInitData = useCallback(async () => {
+        if (!id) return;
+        
         try {
             showLoading();
-            const response = await fetchActiveHistory(id || 0);
+            const response = await fetchUser(id);
             if (response.status === 200) {
-                setActiveHistory(response.data || {});
+                setUserDetail(response.data || null);
             }
         } finally {
             hideLoading();
         }
-    }, [fetchActiveHistory, id, showLoading, hideLoading]);
+    }, [fetchUser, id, showLoading, hideLoading]);
 
     useEffect(() => {
         fetchInitData();
     }, [fetchInitData]);
+
+    const profileImageUrl = userDetail?.user_face?.image || defaultProfileUrl;
+    const fullName = `${userDetail?.user?.first_name || ''} ${userDetail?.user?.last_name || ''}`.trim() || '-';
+    const email = userDetail?.user?.email || '-';
+    const job = userDetail?.user?.job || translate('noJob');
+    const isActive = userDetail?.user?.is_active;
+    const accountStatus = isActive ? translate('active') : translate('inactive');
+    const memberSince = userDetail?.user?.date_joined ? formatDate(userDetail.user.date_joined) : '-';
 
     return (
         <View style={[tw`flex-1`, { backgroundColor: COLORS.background }]}>
@@ -80,7 +93,7 @@ const ActiveHistoryDetailScreen = (props: Props) => {
                     <Text
                         style={[tw`text-lg`, { fontFamily: Fonts.semiBold, color: COLORS.white }]}
                     >
-                        {translate('loginHistoryDetail')}
+                        {translate('userDetail')}
                     </Text>
 
                     <View style={tw`w-10`} />
@@ -94,7 +107,26 @@ const ActiveHistoryDetailScreen = (props: Props) => {
                 >
                     <View
                         style={[
-                            tw`bg-white rounded-3xl p-5 shadow-lg`,
+                            tw`bg-white rounded-3xl p-5 shadow-lg mb-4`,
+                            { shadowColor: COLORS.black },
+                        ]}
+                    >
+                        <View style={tw`items-center`}>
+                            <TouchableOpacity
+                                activeOpacity={0.8}
+                                onPress={() => setIsImageModalVisible(true)}
+                            >
+                                <Image
+                                    resizeMode="cover"
+                                    source={{ uri: profileImageUrl }}
+                                    style={[tw`w-[120px] h-[120px] rounded-full`]}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                    <View
+                        style={[
+                            tw`bg-white rounded-3xl p-5 shadow-lg mb-4`,
                             { shadowColor: COLORS.black },
                         ]}
                     >
@@ -105,7 +137,7 @@ const ActiveHistoryDetailScreen = (props: Props) => {
                                     { backgroundColor: COLORS.cream },
                                 ]}
                             >
-                                <ClockIcon
+                                <PersonIcon
                                     width={20}
                                     height={20}
                                     fill={COLORS.primary}
@@ -114,31 +146,46 @@ const ActiveHistoryDetailScreen = (props: Props) => {
                             <Text
                                 style={[tw`text-base`, { fontFamily: Fonts.semiBold, color: COLORS.text}]}
                             >
-                                {translate('deviceInformation')}
+                                {translate('personalInformation')}
                             </Text>
                         </View>
                         <View style={[tw`border-b`, { borderColor: COLORS.border }]} />
                         <View style={tw`h-4`}/>
                         <ActiveHistoryDetailTile
-                            title={translate('operatingSystem')}
-                            subtitle={activeHistory?.operating_system || '-'}
+                            title={translate('fullName')}
+                            subtitle={fullName}
                         />
                         <View style={tw`h-4`}/>
                         <ActiveHistoryDetailTile
-                            title={translate('deviceModel')}
-                            subtitle={activeHistory?.model || '-'}
+                            title={translate('email')}
+                            subtitle={email}
                         />
                         <View style={tw`h-4`}/>
                         <ActiveHistoryDetailTile
-                            title={translate('loginTime')}
-                            subtitle={activeHistory?.created_at ? formatDate(activeHistory.created_at) : '-'}
+                            title={translate('job')}
+                            subtitle={job}
+                        />
+                        <View style={tw`h-4`}/>
+                        <ActiveHistoryDetailTile
+                            title={translate('accountStatus')}
+                            subtitle={accountStatus}
+                        />
+                        <View style={tw`h-4`}/>
+                        <ActiveHistoryDetailTile
+                            title={translate('memberSince')}
+                            subtitle={memberSince}
                         />
                         <View style={tw`h-4`}/>
                     </View>
                 </ScrollView>
             </View>
+            <CustomModalPhoto
+                visible={isImageModalVisible}
+                onClose={() => setIsImageModalVisible(false)}
+                imageUrl={profileImageUrl}
+            />
         </View>
     )
 }
 
-export default ActiveHistoryDetailScreen
+export default UserDetailScreen

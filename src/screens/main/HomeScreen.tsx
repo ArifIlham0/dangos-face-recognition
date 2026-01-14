@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Image, RefreshControl } from 'react-native'
+import { View, Text, TouchableOpacity, ScrollView, Image, RefreshControl, DeviceEventEmitter } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import FontAwesome6 from '@react-native-vector-icons/fontawesome6'
@@ -79,6 +79,13 @@ const HomeScreen = (props: Props) => {
     fetchInitData();
   }, [fetchInitData]);
 
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener('refreshHomeScreen', () => {
+        fetchInitData(true);
+    });
+    return () => subscription.remove();
+}, [fetchInitData]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await fetchInitData(true);
@@ -140,7 +147,7 @@ const HomeScreen = (props: Props) => {
             </Text>
             <View style={tw`h-1`} />
             <Text style={[tw`text-[20px]`, { fontFamily: Fonts.medium, color: COLORS.darkBlue }]}>
-              {user.user?.first_name || "-"}
+              {`${user.user?.first_name} ${user.user?.last_name}` || "-"}
             </Text>
             <View style={tw`h-4`} />
           </TouchableOpacity>

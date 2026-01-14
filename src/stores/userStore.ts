@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError } from "axios";
 import { create } from "zustand";
 import api from "../services/api";
-import { UserDetail } from "../types/user";
+import { UserData, UserDetail } from "../types/user";
 import { LocalStorage } from "../utils/localStorage";
 import { headersWithToken } from "../services/header";
 import { GlobalQueryParams, GlobalResponse } from "../types/global";
@@ -11,6 +11,7 @@ type UserState = {
     fetchUser: () => Promise<GlobalResponse<UserDetail>>;
     fetchUsers: (params: GlobalQueryParams) => Promise<GlobalResponse<UserDetail[]>>;
     fetchUserJobs: (params: GlobalQueryParams) => Promise<GlobalResponse<string[]>>;
+    updateUser: (id: number, request: Partial<UserData>) => Promise<GlobalResponse<null>>;
 };
 
 const useUserStore = create<UserState>(() => ({
@@ -102,6 +103,37 @@ const useUserStore = create<UserState>(() => ({
                     page: response.data.page,
                     page_size: response.data.page_size,
                     total_page: response.data.total_page,
+                }
+            } else {
+                return {
+                    status: response.data.status,
+                    message: response.data.message,
+                }
+            }
+            
+        } catch (error) {
+            const axiosError = error as AxiosError<{ status: number; message: string }>;
+            return {
+                status: axiosError.response?.data?.status,
+                message: axiosError.response?.data?.message,
+            }
+        }
+    },
+
+    updateUser: async (id: number, request: Partial<UserData>) => {
+        try {
+            const accessToken = await LocalStorage.accessToken();
+
+            const response = await api.put(
+                `/user/${id}/`,
+                request,
+                { headers: headersWithToken(accessToken || "") },
+            );
+
+            if (response.data.status === 200) {
+                return {
+                    status: response.data.status,
+                    message: response.data.message,
                 }
             } else {
                 return {

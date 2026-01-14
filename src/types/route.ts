@@ -4,9 +4,9 @@ type RootStackParamList = {
     Register: undefined;
     LoginFace: undefined;
     FrontCamera: { flow?: 'register' | 'loginFace' | 'home' | 'update' } | undefined;
-    Home: undefined;
+    Home: { isRefresh?: boolean } | undefined;
     Users: undefined;
-    EditUser: undefined;
+    EditUser: { isRefresh?: boolean } | undefined;
 };
 
 export type { RootStackParamList };

@@ -7,14 +7,17 @@ import {
     Platform,
     Keyboard,
     ScrollView,
+    DeviceEventEmitter,
 } from 'react-native'
-import React, { useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { FontAwesome6 } from '@react-native-vector-icons/fontawesome6'
 import LinearGradient from 'react-native-linear-gradient'
 import tw from 'twrnc'
 import COLORS from '../../constants/color'
 import { Fonts } from '../../constants/font'
+import { UserDetail } from '../../types/user'
+import useUserStore from '../../stores/userStore'
 import { FieldErrors } from '../../types/validator'
 import useGlobalStore from '../../stores/globalStore'
 import { RootStackParamList } from '../../types/route'
@@ -29,16 +32,47 @@ type Props = {
 
 const EditUserScreen = (props: Props) => {
     const { translate, showLoading, hideLoading } = useGlobalStore();
-    const { showAlert } = useAlertStore();
+    const { showAlert, hideAlert } = useAlertStore();
+    const { fetchUser, updateUser } = useUserStore();
     const { insets } = useDimensionInsets();
 
     const [name, setName] = useState('');
-    const [job, setJob] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
+    const [job, setJob] = useState('');
     const [errors, setErrors] = useState<FieldErrors>({});
+    const [user, setUser] = useState<UserDetail | null>({user: {}, user_face: {}});
 
     const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+
+    const fetchInitData = useCallback(async () => {
+        try {
+            showLoading();
+
+            const response = await fetchUser();
+
+            if (response.status === 200) {
+                setName(`${response.data?.user?.first_name || ''} ${response.data?.user?.last_name || ''}`);
+                setUsername(response.data?.user?.username || '');
+                setEmail(response.data?.user?.email || '');
+                setJob(response.data?.user?.job || '');
+                setUser(response.data || {user: {}, user_face: {}});
+            }
+        } finally {
+            hideLoading();
+        }
+    }, [fetchUser, showLoading, hideLoading]);
+
+    useEffect(() => {
+        fetchInitData();
+    }, [fetchInitData]);
+
+    useEffect(() => {
+        return () => {
+            DeviceEventEmitter.emit('refreshHomeScreen');
+        };
+    }, []);
+    
 
     const validate = () => {
         const nextErrors: FieldErrors = {};
@@ -59,16 +93,33 @@ const EditUserScreen = (props: Props) => {
 
     const handleSave = async () => {
         if (!validate()) return;
-
-        try {
-            showLoading();
-            showAlert(translate('profileUpdated'));
-            props.navigation.goBack();
-        } catch {
-            showAlert(translate('somethingWentWrong'));
-        } finally {
-            hideLoading();
-        }
+        showAlert(
+            translate('youSureUpdate'),
+            async () => {
+                try {
+                    hideAlert();
+                    showLoading();
+                    const response = await updateUser(
+                        user?.user?.id || 0,
+                        {
+                            first_name: name,
+                            username: username,
+                            email: email,
+                            job: job,
+                        }
+                    )
+    
+                    if (response.status !== 200) {
+                        showAlert(response.message || translate('somethingWentWrong'));
+                    } else {
+                        showAlert(translate('profileUpdated'));
+                    }
+                } finally {
+                    hideLoading();
+                }
+            },
+            false
+        );
     }
 
     return (
@@ -118,24 +169,12 @@ const EditUserScreen = (props: Props) => {
                             value={name}
                             label={translate('name')}
                             preffix={<PersonIcon />}
-                            placeholder="Muhammad Arif Ilham"
+                            placeholder="Charles Dhiya"
                             onChangeText={text => {
                                 setName(text)
                                 if (errors.name) setErrors(prev => ({ ...prev, name: undefined }))
                             }}
                             errorMessage={errors.name}
-                        />
-                        <View style={tw`h-6`} />
-                        <CustomTextInput
-                            value={job}
-                            label={translate('job')}
-                            preffix={<SlingBagIcon width={17} height={17} />}
-                            placeholder={translate('jobPlaceholder')}
-                            onChangeText={text => {
-                                setJob(text)
-                                if (errors.job) setErrors(prev => ({ ...prev, job: undefined }))
-                            }}
-                            errorMessage={errors.job}
                         />
                         <View style={tw`h-6`} />
                         <CustomTextInput
@@ -164,7 +203,18 @@ const EditUserScreen = (props: Props) => {
                             }}
                             errorMessage={errors.email}
                         />
-
+                        <View style={tw`h-6`} />
+                        <CustomTextInput
+                            value={job}
+                            label={translate('job')}
+                            preffix={<SlingBagIcon width={17} height={17} />}
+                            placeholder={translate('jobPlaceholder')}
+                            onChangeText={text => {
+                                setJob(text)
+                                if (errors.job) setErrors(prev => ({ ...prev, job: undefined }))
+                            }}
+                            errorMessage={errors.job}
+                        />
                         <View style={tw`h-10`} />
                         <CustomButton
                             title={translate('save')}

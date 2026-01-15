@@ -19,7 +19,7 @@ const SplashScreen = (props: Props) => {
             if (user) {
                 props.navigation.reset({
                     index: 0,
-                    routes: [{ name: 'Home' }],
+                    routes: [{ name: 'FrontCamera' }],
                 })
             } else {
                 props.navigation.reset({
